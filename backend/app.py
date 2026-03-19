@@ -7,9 +7,12 @@ load_dotenv()
 
 app = FastAPI(title="Exam Generator API")
 
+allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+origins = [o.strip() for o in allowed_origins.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
