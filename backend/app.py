@@ -8,7 +8,7 @@ load_dotenv()
 app = FastAPI(title="Exam Generator API")
 
 allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000")
-origins = [o.strip() for o in allowed_origins.split(",")]
+origins = [o.strip().rstrip("/") for o in allowed_origins.split(",")]
 use_wildcard = origins == ["*"]
 
 app.add_middleware(
