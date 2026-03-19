@@ -1,0 +1,66 @@
+import os
+import uuid
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from models.schema import UploadResponse
+from services.parser import parse_file
+
+router = APIRouter()
+
+ALLOWED_EXTENSIONS = {"pdf", "pptx"}
+
+
+@router.post("", response_model=UploadResponse)
+async def upload_files(files: list[UploadFile] = File(...)):
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided.")
+
+    document_id = str(uuid.uuid4())
+    upload_dir = "uploads"
+    all_pages = []
+    filenames = []
+
+    for file in files:
+        filename = file.filename
+        # Strip directory path for folder uploads (e.g. "subdir/file.pdf" -> "file.pdf")
+        safe_name = os.path.basename(filename)
+        ext = safe_name.lower().rsplit(".", 1)[-1] if "." in safe_name else ""
+        if ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file type: {safe_name}. Only PDF and PPTX files are supported.",
+            )
+
+        # Save file to disk
+        file_path = os.path.join(upload_dir, f"{document_id}_{safe_name}")
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+
+        # Parse the file
+        try:
+            parsed_pages = parse_file(file_path, safe_name)
+        except Exception as e:
+            os.remove(file_path)
+            raise HTTPException(status_code=500, detail=f"Failed to parse {safe_name}: {str(e)}")
+
+        if not parsed_pages:
+            os.remove(file_path)
+            raise HTTPException(status_code=400, detail=f"No text content found in {safe_name}.")
+
+        all_pages.extend(parsed_pages)
+        filenames.append(safe_name)
+
+    # Store aggregated parsed data under a single document_id
+    from app import documents_store
+    documents_store[document_id] = {
+        "filenames": filenames,
+        "pages": all_pages,
+    }
+
+    file_word = "file" if len(filenames) == 1 else "files"
+    return UploadResponse(
+        document_id=document_id,
+        filenames=filenames,
+        num_pages=len(all_pages),
+        message=f"Successfully parsed {len(all_pages)} sections from {len(filenames)} {file_word}",
+    )

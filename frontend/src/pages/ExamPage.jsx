@@ -1,0 +1,207 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import Timer from "../components/Timer";
+import Question from "../components/Question";
+
+const API_URL = "http://localhost:8000";
+
+function ExamPage() {
+  const { examId } = useParams();
+  const navigate = useNavigate();
+  const [exam, setExam] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [grading, setGrading] = useState(false);
+
+  useEffect(() => {
+    const fetchExam = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/exam/${examId}`);
+        setExam(response.data);
+      } catch (err) {
+        setError("Failed to load exam. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExam();
+  }, [examId]);
+
+  const handleAnswer = (questionIndex, answer) => {
+    setAnswers((prev) => ({ ...prev, [questionIndex]: answer }));
+  };
+
+  const gradeExam = useCallback(async () => {
+    if (!exam || submitted || grading) return;
+    setGrading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/grade`, {
+        exam_id: examId,
+        answers,
+      });
+      const data = response.data;
+      setResults({
+        score: data.score,
+        gradable: data.gradable,
+        total: data.total,
+        percentage: data.percentage,
+        details: data.details.map((d) => ({
+          question: d.question,
+          type: d.type,
+          userAnswer: d.user_answer,
+          correctAnswer: d.correct_answer,
+          explanation: d.explanation,
+          source: d.source,
+          isCorrect: d.is_correct,
+          feedback: d.feedback || "",
+        })),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError("Grading failed. Please try again.");
+    } finally {
+      setGrading(false);
+    }
+  }, [exam, examId, answers, submitted, grading]);
+
+  const handleTimeUp = useCallback(() => {
+    if (!submitted) {
+      gradeExam();
+    }
+  }, [submitted, gradeExam]);
+
+  if (loading) {
+    return (
+      <div className="exam-container">
+        <div className="loading-overlay">
+          <div className="spinner"></div>
+          <p>Loading exam...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="exam-container">
+        <div className="status-message error">{error}</div>
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          <button className="btn btn-secondary" onClick={() => navigate("/")}>
+            Start Over
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Results view
+  if (submitted && results) {
+    return (
+      <div className="results-container">
+        <div className="score-display">
+          <div className="score">{results.score}/{results.gradable}</div>
+          <div className="total">
+            {results.percentage}% — All questions graded
+          </div>
+        </div>
+
+        <h3 style={{ marginBottom: 16 }}>Review Answers</h3>
+
+        {results.details.map((r, i) => (
+          <div
+            key={i}
+            className={`result-item ${
+              r.isCorrect === null ? "ungraded" : r.isCorrect ? "correct" : "incorrect"
+            }`}
+          >
+            <div className="question-number">Question {i + 1}</div>
+            <span className={`question-type ${r.type}`}>
+              {r.type === "mcq" ? "MCQ" : r.type === "true_false" ? "T/F" : "Short Answer"}
+            </span>
+            <div className="question-text">{r.question}</div>
+            <div className="result-answer">
+              <strong>Your answer:</strong> {r.userAnswer || "(no answer)"}
+            </div>
+            <div className="result-answer">
+              <strong>Correct answer:</strong> {r.correctAnswer}
+            </div>
+            <div className="result-explanation">
+              {r.explanation}
+            </div>
+            {r.feedback && (
+              <div style={{ marginTop: 8, fontSize: "0.85rem", color: "#475569" }}>
+                <strong>Grading feedback:</strong> {r.feedback}
+              </div>
+            )}
+            <div style={{ fontSize: "0.8rem", color: "#94a3b8", marginTop: 4 }}>
+              Source: {r.source}
+            </div>
+          </div>
+        ))}
+
+        <div style={{ textAlign: "center", marginTop: 32 }}>
+          <button className="btn btn-primary" onClick={() => navigate("/")}>
+            Generate New Exam
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Exam-taking view
+  return (
+    <div className="exam-container">
+      <div className="exam-header">
+        <div>
+          <h2>Exam</h2>
+          <span style={{ color: "#64748b", fontSize: "0.9rem" }}>
+            {exam.questions.length} questions
+          </span>
+        </div>
+        <Timer totalMinutes={exam.time_limit} onTimeUp={handleTimeUp} />
+      </div>
+
+      {/* Question navigation */}
+      <div className="question-nav">
+        {exam.questions.map((_, i) => (
+          <button
+            key={i}
+            className={answers[i] ? "answered" : ""}
+            onClick={() => document.getElementById(`q-${i}`)?.scrollIntoView({ behavior: "smooth" })}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
+
+      {/* Questions */}
+      {exam.questions.map((q, i) => (
+        <div key={i} id={`q-${i}`}>
+          <Question
+            question={q}
+            index={i}
+            answer={answers[i]}
+            onAnswer={(ans) => handleAnswer(i, ans)}
+          />
+        </div>
+      ))}
+
+      <div className="submit-section">
+        <p style={{ color: "#64748b", marginBottom: 12, fontSize: "0.9rem" }}>
+          {Object.keys(answers).length} of {exam.questions.length} questions answered
+        </p>
+        <button className="btn btn-primary" onClick={gradeExam} disabled={grading}>
+          {grading ? "Grading..." : "Submit Exam"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default ExamPage;
