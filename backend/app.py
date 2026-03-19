@@ -9,11 +9,12 @@ app = FastAPI(title="Exam Generator API")
 
 allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000")
 origins = [o.strip() for o in allowed_origins.split(",")]
+use_wildcard = origins == ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=not use_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -35,4 +36,4 @@ app.include_router(generate_router, tags=["generate"])
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "allowed_origins": origins}

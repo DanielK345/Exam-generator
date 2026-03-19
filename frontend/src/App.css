@@ -26,6 +26,53 @@ body {
   font-weight: 600;
 }
 
+/* Connection banner */
+.conn-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  text-align: center;
+  flex-wrap: wrap;
+}
+
+.conn-connecting {
+  background: #fefce8;
+  color: #854d0e;
+}
+
+.conn-connected {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.conn-failed {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.conn-origins {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.conn-dismiss {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.conn-dismiss:hover {
+  opacity: 1;
+}
+
 .app-main {
   max-width: 800px;
   margin: 32px auto;
