@@ -15,18 +15,31 @@ function ExamPage() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [slowNotice, setSlowNotice] = useState(false);
 
   const [grading, setGrading] = useState(false);
 
   useEffect(() => {
     const fetchExam = async () => {
+      setSlowNotice(false);
+      const slowTimer = setTimeout(() => setSlowNotice(true), 5000);
       try {
-        const response = await axios.get(`${API_URL}/exam/${examId}`);
+        const response = await axios.get(`${API_URL}/exam/${examId}`, {
+          timeout: 120000,
+        });
         setExam(response.data);
       } catch (err) {
-        setError("Failed to load exam. Please try again.");
+        if (err.code === "ECONNABORTED") {
+          setError("Request timed out. The server may be starting up — please try again.");
+        } else if (!err.response) {
+          setError("Cannot reach the server. It may be waking up — please wait a moment and try again.");
+        } else {
+          setError("Failed to load exam. Please try again.");
+        }
       } finally {
+        clearTimeout(slowTimer);
         setLoading(false);
+        setSlowNotice(false);
       }
     };
     fetchExam();
@@ -39,11 +52,16 @@ function ExamPage() {
   const gradeExam = useCallback(async () => {
     if (!exam || submitted || grading) return;
     setGrading(true);
+    setSlowNotice(false);
+
+    const slowTimer = setTimeout(() => setSlowNotice(true), 5000);
 
     try {
       const response = await axios.post(`${API_URL}/grade`, {
         exam_id: examId,
         answers,
+      }, {
+        timeout: 180000,
       });
       const data = response.data;
       setResults({
@@ -64,9 +82,17 @@ function ExamPage() {
       });
       setSubmitted(true);
     } catch (err) {
-      setError("Grading failed. Please try again.");
+      if (err.code === "ECONNABORTED") {
+        setError("Grading timed out. The server may be starting up — please try again.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. It may be waking up — please wait a moment and try again.");
+      } else {
+        setError("Grading failed. Please try again.");
+      }
     } finally {
+      clearTimeout(slowTimer);
       setGrading(false);
+      setSlowNotice(false);
     }
   }, [exam, examId, answers, submitted, grading]);
 
@@ -82,6 +108,11 @@ function ExamPage() {
         <div className="loading-overlay">
           <div className="spinner"></div>
           <p>Loading exam...</p>
+          {slowNotice && (
+            <p style={{ color: "#f59e0b", fontSize: "0.85rem", marginTop: 8 }}>
+              Server is waking up — this may take up to a minute on first request.
+            </p>
+          )}
         </div>
       </div>
     );
@@ -199,6 +230,11 @@ function ExamPage() {
         <button className="btn btn-primary" onClick={gradeExam} disabled={grading}>
           {grading ? "Grading..." : "Submit Exam"}
         </button>
+        {grading && slowNotice && (
+          <p style={{ color: "#f59e0b", fontSize: "0.85rem", marginTop: 8 }}>
+            Server is waking up — this may take up to a minute on first request.
+          </p>
+        )}
       </div>
     </div>
   );

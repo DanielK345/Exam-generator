@@ -9,6 +9,7 @@ function ConfigPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [slowNotice, setSlowNotice] = useState(false);
   const [config, setConfig] = useState({
     time_limit: 30,
     mcq: 5,
@@ -25,6 +26,9 @@ function ConfigPage() {
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
+    setSlowNotice(false);
+
+    const slowTimer = setTimeout(() => setSlowNotice(true), 5000);
 
     try {
       const payload = {
@@ -37,13 +41,23 @@ function ConfigPage() {
         focus: config.focus || null,
       };
 
-      const response = await axios.post(`${API_URL}/generate`, payload);
+      const response = await axios.post(`${API_URL}/generate`, payload, {
+        timeout: 180000,
+      });
       navigate(`/exam/${response.data.exam_id}`);
     } catch (err) {
-      const detail = err.response?.data?.detail || "Generation failed. Please try again.";
-      setError(detail);
+      if (err.code === "ECONNABORTED") {
+        setError("Request timed out. The server may be starting up — please try again.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. It may be waking up — please wait a moment and try again.");
+      } else {
+        const detail = err.response?.data?.detail || "Generation failed. Please try again.";
+        setError(detail);
+      }
     } finally {
+      clearTimeout(slowTimer);
       setLoading(false);
+      setSlowNotice(false);
     }
   };
 
@@ -56,6 +70,11 @@ function ConfigPage() {
           <p style={{ color: "#64748b", fontSize: "0.9rem", marginTop: 8 }}>
             This may take a moment while we analyze your document and create questions.
           </p>
+          {slowNotice && (
+            <p style={{ color: "#f59e0b", fontSize: "0.85rem", marginTop: 12 }}>
+              Server is waking up — this may take up to a minute on first request.
+            </p>
+          )}
         </div>
       </div>
     );

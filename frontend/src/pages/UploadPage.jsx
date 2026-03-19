@@ -11,6 +11,7 @@ function UploadPage() {
   const [message, setMessage] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [folderMode, setFolderMode] = useState(false);
+  const [slowNotice, setSlowNotice] = useState(false);
   const fileInputRef = useRef();
   const folderInputRef = useRef();
   const navigate = useNavigate();
@@ -69,15 +70,19 @@ function UploadPage() {
 
     setUploading(true);
     setMessage(null);
+    setSlowNotice(false);
 
     const formData = new FormData();
     files.forEach((file) => {
       formData.append("files", file);
     });
 
+    const slowTimer = setTimeout(() => setSlowNotice(true), 5000);
+
     try {
       const response = await axios.post(`${API_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        timeout: 120000,
       });
 
       setMessage({ type: "success", text: response.data.message });
@@ -86,10 +91,18 @@ function UploadPage() {
         navigate(`/config/${response.data.document_id}`);
       }, 1000);
     } catch (err) {
-      const detail = err.response?.data?.detail || "Upload failed. Please try again.";
-      setMessage({ type: "error", text: detail });
+      if (err.code === "ECONNABORTED") {
+        setMessage({ type: "error", text: "Request timed out. The server may be starting up — please try again." });
+      } else if (!err.response) {
+        setMessage({ type: "error", text: "Cannot reach the server. It may be waking up — please wait a moment and try again." });
+      } else {
+        const detail = err.response?.data?.detail || "Upload failed. Please try again.";
+        setMessage({ type: "error", text: detail });
+      }
     } finally {
+      clearTimeout(slowTimer);
       setUploading(false);
+      setSlowNotice(false);
     }
   };
 
@@ -182,6 +195,12 @@ function UploadPage() {
       >
         {uploading ? "Uploading..." : `Upload ${files.length || ""} Document${files.length !== 1 ? "s" : ""}`}
       </button>
+
+      {uploading && slowNotice && (
+        <div className="status-message info">
+          Server is waking up — this may take up to a minute on first request.
+        </div>
+      )}
 
       {message && (
         <div className={`status-message ${message.type}`}>
