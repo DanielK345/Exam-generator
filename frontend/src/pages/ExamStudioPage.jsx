@@ -8,7 +8,13 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 function BookIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      aria-hidden="true"
+    >
       <path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 0 5 22z" />
       <path d="M5 4.5v17" />
     </svg>
@@ -17,7 +23,13 @@ function BookIcon() {
 
 function InsightIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      aria-hidden="true"
+    >
       <path d="M12 3v10" />
       <path d="M8 13h8" />
       <path d="M10 21h4" />
@@ -29,7 +41,13 @@ function InsightIcon() {
 
 function CheckIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
       <path d="m5 12 4 4L19 6" />
     </svg>
   );
@@ -37,7 +55,13 @@ function CheckIcon() {
 
 function XIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
       <path d="m6 6 12 12" />
       <path d="M18 6 6 18" />
     </svg>
@@ -51,7 +75,9 @@ function getQuestionTypeLabel(type) {
 }
 
 function getAnsweredCount(answers) {
-  return Object.values(answers).filter((value) => value !== undefined && value !== "").length;
+  return Object.values(answers).filter(
+    (value) => value !== undefined && value !== "",
+  ).length;
 }
 
 function buildProgressLabel(answered, total) {
@@ -87,7 +113,9 @@ function ExamStudioPage() {
         if (requestError.code === "ECONNABORTED") {
           setError("Loading timed out while the backend was waking up.");
         } else if (!requestError.response) {
-          setError("The backend could not be reached. Please try again in a moment.");
+          setError(
+            "The backend could not be reached. Please try again in a moment.",
+          );
         } else {
           setError("We couldn't load this exam. Please generate a new one.");
         }
@@ -112,7 +140,9 @@ function ExamStudioPage() {
 
   const toggleFlag = (questionIndex) => {
     setFlaggedQuestions((prev) =>
-      prev.includes(questionIndex) ? prev.filter((item) => item !== questionIndex) : [...prev, questionIndex]
+      prev.includes(questionIndex)
+        ? prev.filter((item) => item !== questionIndex)
+        : [...prev, questionIndex],
     );
   };
 
@@ -132,7 +162,7 @@ function ExamStudioPage() {
         },
         {
           timeout: 180000,
-        }
+        },
       );
       const data = response.data;
       setResults({
@@ -157,7 +187,9 @@ function ExamStudioPage() {
       if (requestError.code === "ECONNABORTED") {
         setError("Grading timed out before the backend finished the response.");
       } else if (!requestError.response) {
-        setError("The backend could not be reached for grading. Please retry once it is online.");
+        setError(
+          "The backend could not be reached for grading. Please retry once it is online.",
+        );
       } else {
         setError("Grading failed. Please try again.");
       }
@@ -177,7 +209,7 @@ function ExamStudioPage() {
   const answeredCount = useMemo(() => getAnsweredCount(answers), [answers]);
   const progressLabel = useMemo(
     () => buildProgressLabel(answeredCount, exam?.questions.length || 0),
-    [answeredCount, exam]
+    [answeredCount, exam],
   );
 
   if (isDemo) {
@@ -185,24 +217,34 @@ function ExamStudioPage() {
       <div className="page-state-card history-state-card">
         <h2>History workspace</h2>
         <p>
-          Completed exam sessions will appear here after you run the full upload and generation
-          flow.
+          Completed exam sessions will appear here after you run the full upload
+          and generation flow.
         </p>
         <div className="history-state-grid">
           <div className="history-state-item">
             <strong>Past sessions</strong>
-            <span>Review scores and answer quality after each graded exam.</span>
+            <span>
+              Review scores and answer quality after each graded exam.
+            </span>
           </div>
           <div className="history-state-item">
             <strong>Question trends</strong>
-            <span>Track difficult concepts and revisit specific weak areas.</span>
+            <span>
+              Track difficult concepts and revisit specific weak areas.
+            </span>
           </div>
           <div className="history-state-item">
             <strong>Export-ready summaries</strong>
-            <span>Prepare concise reports for revision or classroom follow-up.</span>
+            <span>
+              Prepare concise reports for revision or classroom follow-up.
+            </span>
           </div>
         </div>
-        <button className="primary-pill-button" onClick={() => navigate("/")} type="button">
+        <button
+          className="primary-pill-button"
+          onClick={() => navigate("/")}
+          type="button"
+        >
           Go to Dashboard
         </button>
       </div>
@@ -214,8 +256,14 @@ function ExamStudioPage() {
       <div className="page-state-card">
         <div className="loading-orb" />
         <h2>Loading exam canvas</h2>
-        <p>We&apos;re preparing the generated questions and answer structure.</p>
-        {slowNotice && <div className="feedback-banner info">The server may still be waking up.</div>}
+        <p>
+          We&apos;re preparing the generated questions and answer structure.
+        </p>
+        {slowNotice && (
+          <div className="feedback-banner info">
+            The server may still be waking up.
+          </div>
+        )}
       </div>
     );
   }
@@ -225,7 +273,11 @@ function ExamStudioPage() {
       <div className="page-state-card">
         <h2>Exam unavailable</h2>
         <p>{error}</p>
-        <button className="primary-pill-button" onClick={() => navigate("/")} type="button">
+        <button
+          className="primary-pill-button"
+          onClick={() => navigate("/")}
+          type="button"
+        >
           Start over
         </button>
       </div>
@@ -255,11 +307,21 @@ function ExamStudioPage() {
               <span>Total questions</span>
             </div>
             <div className="breakdown-card">
-              <strong>{results.details.filter((item) => item.isCorrect === true).length}</strong>
+              <strong>
+                {
+                  results.details.filter((item) => item.isCorrect === true)
+                    .length
+                }
+              </strong>
               <span>Correct</span>
             </div>
             <div className="breakdown-card">
-              <strong>{results.details.filter((item) => item.isCorrect === false).length}</strong>
+              <strong>
+                {
+                  results.details.filter((item) => item.isCorrect === false)
+                    .length
+                }
+              </strong>
               <span>Needs review</span>
             </div>
           </div>
@@ -270,10 +332,17 @@ function ExamStudioPage() {
             <div>
               <p className="eyebrow">Question Review</p>
               <h1>Advanced Quantum Mechanics Final</h1>
-              <p>Review each answer, inspect the reference explanation, and regenerate when ready.</p>
+              <p>
+                Review each answer, inspect the reference explanation, and
+                regenerate when ready.
+              </p>
             </div>
             <div className="results-header-actions">
-              <button className="secondary-outline-button" onClick={() => navigate("/")} type="button">
+              <button
+                className="secondary-outline-button"
+                onClick={() => navigate("/")}
+                type="button"
+              >
                 Build new exam
               </button>
             </div>
@@ -286,24 +355,28 @@ function ExamStudioPage() {
                   detail.isCorrect === true
                     ? "correct"
                     : detail.isCorrect === false
-                    ? "incorrect"
-                    : "ungraded"
+                      ? "incorrect"
+                      : "ungraded"
                 }`}
                 key={`${detail.question}-${index}`}
               >
                 <div className="review-status-pill">
-                  {detail.isCorrect === true ? <CheckIcon /> : detail.isCorrect === false ? <XIcon /> : null}
+                  {detail.isCorrect === true ? (
+                    <CheckIcon />
+                  ) : detail.isCorrect === false ? (
+                    <XIcon />
+                  ) : null}
                   <span>
                     {detail.isCorrect === true
                       ? "Correct"
                       : detail.isCorrect === false
-                      ? "Needs Improvement"
-                      : "Pending"}
+                        ? "Needs Improvement"
+                        : "Pending"}
                   </span>
                 </div>
 
                 <p className="review-kicker">{`Question ${detail.questionIndex + 1} • ${getQuestionTypeLabel(
-                  detail.type
+                  detail.type,
                 )}`}</p>
                 <h3>{detail.question}</h3>
 
@@ -351,7 +424,13 @@ function ExamStudioPage() {
               const isCurrent = index === currentIndex;
               const isAnswered = Boolean(answers[index]);
               const isFlagged = flaggedQuestions.includes(index);
-              const stateClass = isCurrent ? "current" : isFlagged ? "flagged" : isAnswered ? "answered" : "";
+              const stateClass = isCurrent
+                ? "current"
+                : isFlagged
+                  ? "flagged"
+                  : isAnswered
+                    ? "answered"
+                    : "";
               return (
                 <button
                   className={`question-nav-chip ${stateClass}`}
@@ -366,16 +445,31 @@ function ExamStudioPage() {
           </div>
 
           <div className="legend-list">
-            <div><span className="legend-dot current" />Current Question</div>
-            <div><span className="legend-dot answered" />Answered</div>
-            <div><span className="legend-dot flagged" />Flagged for Review</div>
-            <div><span className="legend-dot unanswered" />Unanswered</div>
+            <div>
+              <span className="legend-dot current" />
+              Current Question
+            </div>
+            <div>
+              <span className="legend-dot answered" />
+              Answered
+            </div>
+            <div>
+              <span className="legend-dot flagged" />
+              Flagged for Review
+            </div>
+            <div>
+              <span className="legend-dot unanswered" />
+              Unanswered
+            </div>
           </div>
         </div>
 
         <div className="sidebar-card sidebar-card-primary">
           <h3>Proctor Insight</h3>
-          <p>Focus is maintained. Your environment check passed. Keep moving through the canvas.</p>
+          <p>
+            Focus is maintained. Your environment check passed. Keep moving
+            through the canvas.
+          </p>
           <div className="secure-pill">Secure session active</div>
         </div>
       </aside>
@@ -418,21 +512,31 @@ function ExamStudioPage() {
             <button
               className="gradient-pill-button"
               disabled={currentIndex === exam.questions.length - 1}
-              onClick={() => setCurrentIndex((prev) => Math.min(prev + 1, exam.questions.length - 1))}
+              onClick={() =>
+                setCurrentIndex((prev) =>
+                  Math.min(prev + 1, exam.questions.length - 1),
+                )
+              }
               type="button"
             >
               Next
             </button>
           </div>
 
-          <button className="primary-pill-button" disabled={grading} onClick={gradeExam} type="button">
+          <button
+            className="primary-pill-button"
+            disabled={grading}
+            onClick={gradeExam}
+            type="button"
+          >
             {grading ? "Grading exam..." : "Submit exam"}
           </button>
         </div>
 
         {grading && slowNotice && (
           <div className="feedback-banner info">
-            The grading request is still processing. Short answers can take a little longer.
+            The grading request is still processing. Short answers can take a
+            little longer.
           </div>
         )}
 
@@ -444,8 +548,8 @@ function ExamStudioPage() {
             <div>
               <h3>Need help?</h3>
               <p>
-                Use your source material and answer progressively. This layout mirrors the context
-                card treatment in the Figma design.
+                Use your source material and answer progressively. This layout
+                mirrors the context card treatment in the Figma design.
               </p>
               <button className="text-action" type="button">
                 Request context hint
@@ -458,7 +562,10 @@ function ExamStudioPage() {
               <InsightIcon />
               <span>Quick Note</span>
             </div>
-            <p>Remember to distinguish central concepts from examples when answering open questions.</p>
+            <p>
+              Remember to distinguish central concepts from examples when
+              answering open questions.
+            </p>
           </div>
         </div>
       </section>

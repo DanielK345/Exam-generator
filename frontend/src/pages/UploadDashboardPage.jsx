@@ -12,6 +12,13 @@ function formatSize(size) {
   return `${Math.max(1, Math.round(size / 1024))} KB`;
 }
 
+function estimateProcessingLabel(fileCount) {
+  const totalSeconds = Math.max(25, fileCount * 14);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 function UploadDashboardPage() {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -34,13 +41,18 @@ function UploadDashboardPage() {
     const rejected = fileArray.length - valid.length;
 
     if (valid.length === 0) {
-      setMessage({ type: "error", text: "Only PDF and PPTX files are supported for exam generation." });
+      setMessage({
+        type: "error",
+        text: "Only PDF and PPTX files are supported for exam generation.",
+      });
       return;
     }
 
     setFiles((prev) => {
       const existing = new Set(prev.map((file) => `${file.name}_${file.size}`));
-      const unique = valid.filter((file) => !existing.has(`${file.name}_${file.size}`));
+      const unique = valid.filter(
+        (file) => !existing.has(`${file.name}_${file.size}`),
+      );
       return [...prev, ...unique];
     });
 
@@ -97,11 +109,21 @@ function UploadDashboardPage() {
       }, 700);
     } catch (error) {
       if (error.code === "ECONNABORTED") {
-        setMessage({ type: "error", text: "Upload timed out while the backend was waking up. Please try again." });
+        setMessage({
+          type: "error",
+          text: "Upload timed out while the backend was waking up. Please try again.",
+        });
       } else if (!error.response) {
-        setMessage({ type: "error", text: "The backend is unreachable right now. Give it a moment and retry." });
+        setMessage({
+          type: "error",
+          text: "The backend is unreachable right now. Give it a moment and retry.",
+        });
       } else {
-        setMessage({ type: "error", text: error.response?.data?.detail || "Upload failed. Please try again." });
+        setMessage({
+          type: "error",
+          text:
+            error.response?.data?.detail || "Upload failed. Please try again.",
+        });
       }
     } finally {
       clearTimeout(slowTimer);
@@ -125,8 +147,14 @@ function UploadDashboardPage() {
           <p className="eyebrow">Exam Builder</p>
           <h1>Build your exam from source files</h1>
           <p className="focus-subcopy">
-            Upload PDF or PPTX materials, then continue to exam setup. Keep the source focused for better generation quality.
+            Upload PDF or PPTX materials, then continue to exam setup. Keep the
+            source focused for better generation quality.
           </p>
+          <div className="focus-stepper" aria-label="Exam workflow steps">
+            <span className="step-chip active">1. Upload</span>
+            <span className="step-chip">2. Configure</span>
+            <span className="step-chip">3. Take exam</span>
+          </div>
         </div>
 
         <div className="focus-upload-shell">
@@ -139,6 +167,12 @@ function UploadDashboardPage() {
               setDragging(true);
             }}
             onDrop={handleDrop}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openPicker();
+              }
+            }}
             role="button"
             tabIndex={0}
           >
@@ -174,6 +208,7 @@ function UploadDashboardPage() {
             <div className="hero-actions">
               <button
                 className={`mode-toggle ${!folderMode ? "active" : ""}`}
+                aria-pressed={!folderMode}
                 onClick={() => setFolderMode(false)}
                 type="button"
               >
@@ -181,6 +216,7 @@ function UploadDashboardPage() {
               </button>
               <button
                 className={`mode-toggle ${folderMode ? "active" : ""}`}
+                aria-pressed={folderMode}
                 onClick={() => setFolderMode(true)}
                 type="button"
               >
@@ -203,15 +239,27 @@ function UploadDashboardPage() {
             <span>{folderMode ? "Folder import" : "Multi-file import"}</span>
             <span>{uploading ? "Uploading" : "Ready"}</span>
           </div>
+
+          {files.length > 0 && (
+            <div className="focus-ready-strip" role="status" aria-live="polite">
+              <strong>{`${files.length} resource${files.length === 1 ? "" : "s"} selected`}</strong>
+              <span>{`Estimated processing: ${estimateProcessingLabel(files.length)}`}</span>
+            </div>
+          )}
         </div>
 
         {uploading && slowNotice && (
           <div className="feedback-banner info">
-            The server is waking up. The first request can take a little longer than usual.
+            The server is waking up. The first request can take a little longer
+            than usual.
           </div>
         )}
 
-        {message && <div className={`feedback-banner ${message.type}`}>{message.text}</div>}
+        {message && (
+          <div className={`feedback-banner ${message.type}`}>
+            {message.text}
+          </div>
+        )}
       </section>
 
       {files.length > 0 && (
@@ -220,9 +268,16 @@ function UploadDashboardPage() {
             <div className="file-panel-header">
               <div>
                 <h3>Selected resources</h3>
-                <p>Review and trim your upload queue before generating the exam configuration.</p>
+                <p>
+                  Review and trim your upload queue before generating the exam
+                  configuration.
+                </p>
               </div>
-              <button className="text-action" onClick={clearFiles} type="button">
+              <button
+                className="text-action"
+                onClick={clearFiles}
+                type="button"
+              >
                 Clear all
               </button>
             </div>

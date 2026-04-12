@@ -21,8 +21,11 @@ function ConfigStudioPage() {
   });
 
   const totalQuestions = useMemo(
-    () => Number(config.mcq) + Number(config.true_false) + Number(config.short_answer),
-    [config.mcq, config.true_false, config.short_answer]
+    () =>
+      Number(config.mcq) +
+      Number(config.true_false) +
+      Number(config.short_answer),
+    [config.mcq, config.true_false, config.short_answer],
   );
 
   const handleChange = (field, value) => {
@@ -31,7 +34,9 @@ function ConfigStudioPage() {
 
   const handleGenerate = async () => {
     if (isDemo) {
-      setError("Start from Dashboard and upload source files before generating an exam.");
+      setError(
+        "Start from Dashboard and upload source files before generating an exam.",
+      );
       return;
     }
 
@@ -58,11 +63,18 @@ function ConfigStudioPage() {
       navigate(`/exam/${response.data.exam_id}`);
     } catch (requestError) {
       if (requestError.code === "ECONNABORTED") {
-        setError("Exam generation timed out while the backend was processing your material.");
+        setError(
+          "Exam generation timed out while the backend was processing your material.",
+        );
       } else if (!requestError.response) {
-        setError("The backend could not be reached. Please wait a moment and try again.");
+        setError(
+          "The backend could not be reached. Please wait a moment and try again.",
+        );
       } else {
-        setError(requestError.response?.data?.detail || "Generation failed. Please try again.");
+        setError(
+          requestError.response?.data?.detail ||
+            "Generation failed. Please try again.",
+        );
       }
     } finally {
       clearTimeout(slowTimer);
@@ -76,7 +88,9 @@ function ConfigStudioPage() {
       <section className="config-main-card">
         <div className="config-header">
           <div>
-            <p className="eyebrow">{isDemo ? "Question Bank" : "Question Structure"}</p>
+            <p className="eyebrow">
+              {isDemo ? "Question Bank" : "Question Structure"}
+            </p>
             <h1>{isDemo ? "Question bank preview" : "Configure your exam"}</h1>
             <p>
               {isDemo
@@ -85,7 +99,11 @@ function ConfigStudioPage() {
             </p>
           </div>
           <div className="config-header-actions">
-            <button className="secondary-outline-button" onClick={() => navigate("/")} type="button">
+            <button
+              className="secondary-outline-button"
+              onClick={() => navigate("/")}
+              type="button"
+            >
               Back to Upload
             </button>
             <button
@@ -94,14 +112,19 @@ function ConfigStudioPage() {
               onClick={handleGenerate}
               type="button"
             >
-              {isDemo ? "Upload documents first" : loading ? "Generating..." : "Generate exam"}
+              {isDemo
+                ? "Upload documents first"
+                : loading
+                  ? "Generating..."
+                  : "Generate exam"}
             </button>
           </div>
         </div>
 
         {isDemo && (
           <div className="feedback-banner info">
-            Demo mode: open Dashboard, upload PDF/PPTX files, then return here with a generated document id.
+            Demo mode: open Dashboard, upload PDF/PPTX files, then return here
+            with a generated document id.
           </div>
         )}
 
@@ -111,7 +134,9 @@ function ConfigStudioPage() {
             <input
               max="180"
               min="5"
-              onChange={(event) => handleChange("time_limit", event.target.value)}
+              onChange={(event) =>
+                handleChange("time_limit", event.target.value)
+              }
               type="number"
               value={config.time_limit}
             />
@@ -120,7 +145,9 @@ function ConfigStudioPage() {
           <label className="config-field">
             <span>Difficulty</span>
             <select
-              onChange={(event) => handleChange("difficulty", event.target.value)}
+              onChange={(event) =>
+                handleChange("difficulty", event.target.value)
+              }
               value={config.difficulty}
             >
               <option value="easy">Easy</option>
@@ -145,7 +172,9 @@ function ConfigStudioPage() {
             <input
               max="20"
               min="0"
-              onChange={(event) => handleChange("true_false", event.target.value)}
+              onChange={(event) =>
+                handleChange("true_false", event.target.value)
+              }
               type="number"
               value={config.true_false}
             />
@@ -156,7 +185,9 @@ function ConfigStudioPage() {
             <input
               max="10"
               min="0"
-              onChange={(event) => handleChange("short_answer", event.target.value)}
+              onChange={(event) =>
+                handleChange("short_answer", event.target.value)
+              }
               type="number"
               value={config.short_answer}
             />
@@ -175,7 +206,8 @@ function ConfigStudioPage() {
 
         {(error || slowNotice) && (
           <div className={`feedback-banner ${error ? "error" : "info"}`}>
-            {error || "The server is still processing your content. This can take up to a minute."}
+            {error ||
+              "The server is still processing your content. This can take up to a minute."}
           </div>
         )}
       </section>
@@ -205,9 +237,17 @@ function ConfigStudioPage() {
         <div className="sidebar-card sidebar-card-primary">
           <p className="sidebar-note-title">Generation hints</p>
           <ul className="plain-list">
-            <li>Use a focused prompt when you only want one chapter or concept area.</li>
-            <li>Keep short-answer counts lower for faster grading turnaround.</li>
-            <li>Higher time limits pair well with more explanation-heavy question sets.</li>
+            <li>
+              Use a focused prompt when you only want one chapter or concept
+              area.
+            </li>
+            <li>
+              Keep short-answer counts lower for faster grading turnaround.
+            </li>
+            <li>
+              Higher time limits pair well with more explanation-heavy question
+              sets.
+            </li>
           </ul>
         </div>
 
