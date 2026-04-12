@@ -62,6 +62,7 @@ function buildProgressLabel(answered, total) {
 function ExamStudioPage() {
   const { examId } = useParams();
   const navigate = useNavigate();
+  const isDemo = examId === "demo";
   const [exam, setExam] = useState(null);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -97,13 +98,13 @@ function ExamStudioPage() {
       }
     };
 
-    if (examId !== "demo") {
+    if (!isDemo) {
       fetchExam();
     } else {
       setLoading(false);
-      setError("This route expects a generated exam. Start from the upload screen first.");
+      setError(null);
     }
-  }, [examId]);
+  }, [examId, isDemo]);
 
   const handleAnswer = (questionIndex, answer) => {
     setAnswers((prev) => ({ ...prev, [questionIndex]: answer }));
@@ -178,6 +179,35 @@ function ExamStudioPage() {
     () => buildProgressLabel(answeredCount, exam?.questions.length || 0),
     [answeredCount, exam]
   );
+
+  if (isDemo) {
+    return (
+      <div className="page-state-card history-state-card">
+        <h2>History workspace</h2>
+        <p>
+          Completed exam sessions will appear here after you run the full upload and generation
+          flow.
+        </p>
+        <div className="history-state-grid">
+          <div className="history-state-item">
+            <strong>Past sessions</strong>
+            <span>Review scores and answer quality after each graded exam.</span>
+          </div>
+          <div className="history-state-item">
+            <strong>Question trends</strong>
+            <span>Track difficult concepts and revisit specific weak areas.</span>
+          </div>
+          <div className="history-state-item">
+            <strong>Export-ready summaries</strong>
+            <span>Prepare concise reports for revision or classroom follow-up.</span>
+          </div>
+        </div>
+        <button className="primary-pill-button" onClick={() => navigate("/")} type="button">
+          Go to Dashboard
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

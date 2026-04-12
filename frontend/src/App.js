@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, NavLink, Route, Routes } from "react-router-dom";
 import axios from "axios";
 import UploadDashboardPage from "./pages/UploadDashboardPage";
 import ConfigStudioPage from "./pages/ConfigStudioPage";
 import ExamStudioPage from "./pages/ExamStudioPage";
-import "./App.css";
 import "./theme.css";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -46,12 +45,10 @@ function HelpIcon() {
 }
 
 function AppChrome({ connStatus, allowedOrigins, dismissed, setDismissed }) {
-  const location = useLocation();
   const navItems = [
-    { to: "/", label: "Dashboard" },
+    { to: "/", label: "Dashboard", end: true },
     { to: "/config/demo", label: "Question Bank" },
     { to: "/exam/demo", label: "History" },
-    { to: "/", label: "Settings" },
   ];
 
   return (
@@ -69,11 +66,8 @@ function AppChrome({ connStatus, allowedOrigins, dismissed, setDismissed }) {
           {navItems.map((item, index) => (
             <NavLink
               key={`${item.label}-${index}`}
-              className={({ isActive }) =>
-                `topbar-link ${isActive && item.to !== "/" ? "active" : ""} ${
-                  item.to === "/" && location.pathname === "/" ? "active" : ""
-                }`
-              }
+              className={({ isActive }) => `topbar-link ${isActive ? "active" : ""}`}
+              end={item.end}
               to={item.to}
             >
               {item.label}

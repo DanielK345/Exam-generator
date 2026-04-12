@@ -119,84 +119,17 @@ function UploadDashboardPage() {
   };
 
   return (
-    <div className="dashboard-layout">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-card sidebar-card-primary">
-          <p className="eyebrow">Document Workflow</p>
-          <h2>Welcome back, Curator.</h2>
-          <p>
-            Turn lecture slides, review packets, and reading notes into a polished exam flow with
-            guided question generation and grading.
+    <div className="dashboard-focus">
+      <section className="focus-hero-card">
+        <div className="focus-hero-head">
+          <p className="eyebrow">Exam Builder</p>
+          <h1>Build your exam from source files</h1>
+          <p className="focus-subcopy">
+            Upload PDF or PPTX materials, then continue to exam setup. Keep the source focused for better generation quality.
           </p>
         </div>
 
-        <div className="sidebar-card">
-          <div className="sidebar-stat-row">
-            <div>
-              <span className="sidebar-stat-label">Accepted types</span>
-              <strong>PDF, PPTX</strong>
-            </div>
-            <div>
-              <span className="sidebar-stat-label">Current queue</span>
-              <strong>{files.length} files</strong>
-            </div>
-          </div>
-          <div className="mini-chip-row">
-            <span className="mini-chip">Lecture decks</span>
-            <span className="mini-chip">Syllabi</span>
-            <span className="mini-chip">Study guides</span>
-          </div>
-        </div>
-
-        <div className="sidebar-card sidebar-note">
-          <p className="sidebar-note-title">Recent Context Cards</p>
-          <div className="context-card-grid">
-            <div className="context-card">
-              <strong>Auto chunking</strong>
-              <span>Splits course content into retrieval-ready passages.</span>
-            </div>
-            <div className="context-card">
-              <strong>Hybrid grading</strong>
-              <span>Supports exact-match and LLM-evaluated short answers.</span>
-            </div>
-            <div className="context-card">
-              <strong>Focus prompts</strong>
-              <span>Target specific chapters or concept clusters.</span>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <section className="dashboard-main">
-        <div className="hero-card">
-          <div>
-            <p className="eyebrow">Exam Builder</p>
-            <h1>Configure your source material</h1>
-            <p className="hero-copy">
-              Upload one or more files, then tune the exam structure in the next step. The layout
-              mirrors the Figma dashboard while preserving your current backend workflow.
-            </p>
-          </div>
-
-          <div className="hero-actions">
-            <button
-              className={`mode-toggle ${!folderMode ? "active" : ""}`}
-              onClick={() => setFolderMode(false)}
-              type="button"
-            >
-              Select Files
-            </button>
-            <button
-              className={`mode-toggle ${folderMode ? "active" : ""}`}
-              onClick={() => setFolderMode(true)}
-              type="button"
-            >
-              Select Folder
-            </button>
-          </div>
-        </div>
-
-        <div className="upload-board">
+        <div className="focus-upload-shell">
           <div
             className={`upload-dropzone ${dragging ? "dragging" : ""}`}
             onClick={openPicker}
@@ -234,26 +167,55 @@ function UploadDashboardPage() {
             <div className="upload-dropzone-icon">+</div>
             <h3>Drag and drop your study material</h3>
             <p>{`Click to ${folderMode ? "select a folder" : "browse files"} or drop documents here.`}</p>
-            <span>Best results come from lecture decks, reading notes, and revision packs.</span>
+            <span>Accepted types: PDF, PPTX.</span>
           </div>
 
-          <div className="upload-summary-row">
-            <div className="summary-metric">
-              <span>Queued</span>
-              <strong>{files.length}</strong>
+          <div className="focus-controls-row">
+            <div className="hero-actions">
+              <button
+                className={`mode-toggle ${!folderMode ? "active" : ""}`}
+                onClick={() => setFolderMode(false)}
+                type="button"
+              >
+                Select Files
+              </button>
+              <button
+                className={`mode-toggle ${folderMode ? "active" : ""}`}
+                onClick={() => setFolderMode(true)}
+                type="button"
+              >
+                Select Folder
+              </button>
             </div>
-            <div className="summary-metric">
-              <span>Mode</span>
-              <strong>{folderMode ? "Folder import" : "Multi-file import"}</strong>
-            </div>
-            <div className="summary-metric">
-              <span>Status</span>
-              <strong>{uploading ? "Uploading..." : "Ready"}</strong>
-            </div>
+
+            <button
+              className="primary-pill-button"
+              disabled={files.length === 0 || uploading}
+              onClick={handleUpload}
+              type="button"
+            >
+              {uploading ? "Uploading resources..." : "Continue to exam setup"}
+            </button>
+          </div>
+
+          <div className="focus-inline-meta">
+            <span>{`${files.length} queued`}</span>
+            <span>{folderMode ? "Folder import" : "Multi-file import"}</span>
+            <span>{uploading ? "Uploading" : "Ready"}</span>
           </div>
         </div>
 
-        {files.length > 0 && (
+        {uploading && slowNotice && (
+          <div className="feedback-banner info">
+            The server is waking up. The first request can take a little longer than usual.
+          </div>
+        )}
+
+        {message && <div className={`feedback-banner ${message.type}`}>{message.text}</div>}
+      </section>
+
+      {files.length > 0 && (
+        <section className="focus-file-tray">
           <div className="file-panel">
             <div className="file-panel-header">
               <div>
@@ -279,27 +241,17 @@ function UploadDashboardPage() {
               ))}
             </div>
           </div>
-        )}
+        </section>
+      )}
 
-        <div className="action-row">
-          <button
-            className="primary-pill-button"
-            disabled={files.length === 0 || uploading}
-            onClick={handleUpload}
-            type="button"
-          >
-            {uploading ? "Uploading resources..." : "Continue to exam setup"}
-          </button>
-        </div>
-
-        {uploading && slowNotice && (
-          <div className="feedback-banner info">
-            The server is waking up. The first request can take a little longer than usual.
-          </div>
-        )}
-
-        {message && <div className={`feedback-banner ${message.type}`}>{message.text}</div>}
-      </section>
+      <details className="focus-accordion">
+        <summary>How it works</summary>
+        <ol className="workflow-list">
+          <li>Upload one or more PDF or PPTX resources.</li>
+          <li>Adjust exam structure and difficulty.</li>
+          <li>Run the exam and review grading insights.</li>
+        </ol>
+      </details>
     </div>
   );
 }

@@ -7,6 +7,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 function ConfigStudioPage() {
   const { documentId } = useParams();
   const navigate = useNavigate();
+  const isDemo = documentId === "demo";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [slowNotice, setSlowNotice] = useState(false);
@@ -29,6 +30,11 @@ function ConfigStudioPage() {
   };
 
   const handleGenerate = async () => {
+    if (isDemo) {
+      setError("Start from Dashboard and upload source files before generating an exam.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setSlowNotice(false);
@@ -70,22 +76,34 @@ function ConfigStudioPage() {
       <section className="config-main-card">
         <div className="config-header">
           <div>
-            <p className="eyebrow">Question Structure</p>
-            <h1>Configure your exam</h1>
+            <p className="eyebrow">{isDemo ? "Question Bank" : "Question Structure"}</p>
+            <h1>{isDemo ? "Question bank preview" : "Configure your exam"}</h1>
             <p>
-              Balance the exam mix, set the time box, and optionally point the generator toward a
-              narrower focus area.
+              {isDemo
+                ? "This area becomes fully interactive after at least one source document is uploaded."
+                : "Balance the exam mix, set the time box, and optionally point the generator toward a narrower focus area."}
             </p>
           </div>
           <div className="config-header-actions">
             <button className="secondary-outline-button" onClick={() => navigate("/")} type="button">
               Back to Upload
             </button>
-            <button className="primary-pill-button" onClick={handleGenerate} type="button">
-              {loading ? "Generating..." : "Generate exam"}
+            <button
+              className="primary-pill-button"
+              disabled={isDemo || loading}
+              onClick={handleGenerate}
+              type="button"
+            >
+              {isDemo ? "Upload documents first" : loading ? "Generating..." : "Generate exam"}
             </button>
           </div>
         </div>
+
+        {isDemo && (
+          <div className="feedback-banner info">
+            Demo mode: open Dashboard, upload PDF/PPTX files, then return here with a generated document id.
+          </div>
+        )}
 
         <div className="config-grid">
           <label className="config-field">
