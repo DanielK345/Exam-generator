@@ -93,7 +93,11 @@ a {
   padding: 12px 20px;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(248, 252, 255, 0.82));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.84),
+    rgba(248, 252, 255, 0.82)
+  );
   border: 1px solid rgba(206, 219, 243, 0.9);
   border-radius: 20px;
   box-shadow: 0 14px 26px -24px rgba(20, 53, 122, 0.45);
